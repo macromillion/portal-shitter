@@ -1,6 +1,7 @@
 from colored import fg, bg, attr
 import mechanize
 from bs4 import BeautifulSoup
+import os
 import time
 
 br = mechanize.Browser()
@@ -11,6 +12,7 @@ br.set_handle_robots(False)
 
 # Set colors
 green = fg('#00FF00')
+red = fg('#FF0000')
 orange = fg('#FFFF00')
 res = attr('reset')
 
@@ -29,7 +31,25 @@ class user:
 user = user()
 
 
+# Check for internet
+def check_ping():
+    hostname = "gnu.org"
+    response = os.system("ping -c 1 " + hostname)
+    # Check response
+    if response == 0:
+        pingstatus = "[RUN] " + green + \
+            "Network connection successful..." + res
+    else:
+        pingstatus = "[ERR] " + red + \
+            "Network connection failed cannot continue..." + res
+    return pingstatus
+
+
+print(check_ping())
+
 # Declare custom strip function
+
+
 def downwithit(string, firstHalf, secondHalf):
     string = str(string)
     format1 = string.replace(str(firstHalf), "")
